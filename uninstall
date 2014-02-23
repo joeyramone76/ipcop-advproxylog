@@ -4,7 +4,7 @@
 #
 # (c) 2013,2014 umberto.m http://joeyramone76.altervista.org
 #
-# $Id: advproxylog.cgi,v 1.0 2014/02/08 00:00:00 umberto.m Exp $
+# $Id: advproxylog.cgi,v 1.0.1 2014/02/23 00:00:00 umberto.m Exp $
 
 $scriptpath=substr($0,0,rindex($0,"/"));
 

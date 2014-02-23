@@ -4,7 +4,7 @@
 # created 01 January 2014 by Umberto 'joeyramone76' Miceli <joeyramone76@altervista.org>
 #
 #
-# $Id: install.sh v 1.0 2014-02-08 17:56:23Z joeyramone76 $
+# $Id: install.sh v 1.0.1 2014-02-23 17:56:23Z joeyramone76 $
 #
 
 SCRIPTPATH=`dirname $0`
@@ -13,7 +13,7 @@ CMD="$1"
 STEP=1
 UPDATE=0
 
-ADVPLVER=1.0.0
+ADVPLVER=1.0.1
 ADVPLURL=http://joeyramone76.altervista.org/advproxylog/latest
 LOGDIR="/var/log/advproxylog"
 
@@ -38,7 +38,7 @@ ai()
 {
     echo ""
     echo "===================================================="
-    echo "  IPCop 2.0 Advanced proxy Log add-on installation"
+    echo "  IPCop 2.0 Advanced proxy Log 1.0.1 add-on installation"
     echo "===================================================="
     echo ""
 
@@ -50,7 +50,7 @@ ai()
     echo "Step $STEP: Creating directories"
     echo "--------------------------------------------"
 
-    for DIR in /var/ipcop/addons/advproxylog /var/ipcop/addons/advproxylog/reports 
+    for DIR in /var/ipcop/addons/advproxylog /var/ipcop/addons/advproxylog/reports /var/log/advproxylog
     do
         echo "$DIR"
         if [ ! -d $DIR ]; then
@@ -122,7 +122,7 @@ au()
 {
 
     echo "===================================================="
-    echo "  IPCop 2.0 Advanced Proxy Log add-on uninstall"
+    echo "  IPCop 2.0 Advanced Proxy Log 1.0.1 add-on uninstall"
     echo "===================================================="
     echo ""
 
@@ -135,7 +135,7 @@ au()
     echo "Step $STEP: Removing directories"
     echo "--------------------------------------------"
 
-    for DIR in /var/ipcop/addons/advproxylog /var/ipcop/addons/advproxylog/reports /var/ipcop/proxy/advproxylog
+    for DIR in /var/ipcop/addons/advproxylog /var/ipcop/addons/advproxylog/reports /var/ipcop/proxy/advproxylog /var/log/advproxylog
     do
         echo "$DIR"
         if [ -d "$DIR" ]; then

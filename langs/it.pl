@@ -27,6 +27,8 @@
 'advproxylog request method' => 'Metodo Richiesta',
 'advproxylog update notification' => 'AdvProxyLog - Aggiornamenti Disponibili!',
 'advproxylog update information' => 'Disponibile un nuovo aggiornamento per AdvProxyLog. Visita <a href="http://joeyramone76.altervista.org/advproxylog" target="_blank">http://joeyramone76.altervista.org/advproxylog</a> per informazioni e download.',
-'advproxylog current installed version' => 'Versione attualmente ainstallata',
+'advproxylog current installed version' => 'Versione attualmente installata',
+'advproxylog prev' => 'Precedente',
+'advproxylog next' => 'Successiva',
 );
 

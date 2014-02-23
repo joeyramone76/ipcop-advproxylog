@@ -28,5 +28,7 @@
 'advproxylog update notification' => 'Update notification!',
 'advproxylog update information' => 'There is an updated version available for download. Visit <a href="http://joeyramone76.altervista.org/advproxylog" target="_blank">http://joeyramone76.altervista.org/advproxylog</a> for more information.',
 'advproxylog current installed version' => 'Current Installed Version',
+'advproxylog prev' => 'Prevoius',
+'advproxylog next' => 'Next',
 );
 

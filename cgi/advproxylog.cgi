@@ -4,7 +4,7 @@
 #
 # (c) 2013,2014 umberto.miceli http://joeyramone76.altervista.org
 #
-# $Id: advproxylog.cgi,v 1.0 2014/02/08 00:00:00 umberto.miceli Exp $
+# $Id: advproxylog.cgi,v 1.0.1 2014/02/23 00:00:00 umberto.miceli Exp $
 #
 
 # Add entry in menu
@@ -15,8 +15,8 @@
 use strict;
 
 # enable only the following on debugging purpose
- use warnings;
- use CGI::Carp 'fatalsToBrowser';
+# use warnings;
+# use CGI::Carp 'fatalsToBrowser';
 use IO::Socket;
 
 require '/usr/lib/ipcop/general-functions.pl';
@@ -29,6 +29,7 @@ use POSIX();
 
 my $version = `cat ${General::swroot}/addons/advproxylog/version`;
 my $updflagfile = "${General::swroot}/addons/advproxylog/.up2date";
+my $logdir = "${General::swroot}/addons/advproxylog/reports";
 
 
 my %cgiparams    = ();
@@ -41,6 +42,7 @@ my @log          = ();
 my $errormessage = '';
 my $hintcolour='#FFFFCC';
 
+my $unique=time;
 
 my @now  = localtime();
 my $dow  = $now[6];          # day of week
@@ -120,8 +122,8 @@ if ($cgiparams{'ACTION'} eq $Lang::tr{'save'}) {
     &General::writehash('/var/ipcop/addons/advproxylog/viewersettings', \%save);
 }
 
-my $start = ($cgiparams{'ORDER'} eq 'DESC') ? 0x7FFFF000 : 0;    #index of first line number to display
-#my $start = 0;
+#my $start = ($cgiparams{'ORDER'} eq 'DESC') ? 0x7FFFF000 : 0;    #index of first line number to display
+my $start = 0;
 
 
 my @temp_then = ();
@@ -187,7 +189,7 @@ my $sourceall = $cgiparams{'SOURCE_IP'} eq 'ALL' ? 1 : 0;
 my $responseall = $cgiparams{'RESPONSE_CODE'} eq 'ALL' ? 1 : 0;
 my $sortby = $cgiparams{'SORT_BY'};
 my $order = $cgiparams{'ORDER'};
-
+my $lastdatetime;    # for debug
 my $lines    = 0;
 my $temp     = ();
 my $thiscode = '$temp =~ /$filter/;';
@@ -199,7 +201,7 @@ if ($@ ne '') {
 else {
     my $loop    = 1;
     my $filestr = 0;
-    my $lastdatetime;    # for debug
+
     my $day_extension = ($cgiparams{'DAY'} == 0 ? 1: $cgiparams{'DAY'});
 
     while ($loop) {
@@ -216,8 +218,10 @@ else {
 		
         # now read file if existing
         if (open(FILE, ($filestr =~ /.gz$/ ? "gzip -dc $filestr |" : $filestr))) {
-
-            #&General::log("reading $filestr");
+			
+			#open (TMPLOG,">>$logdir/advproxylog-$unique.log") or die "ERROR: Cannot write to $logdir/advproxylog-$unique.log\n";
+            
+			#&General::log("reading $filestr");
             my @temp_now = localtime(time);
             $temp_now[4] = $cgiparams{'MONTH'};
             $temp_now[3] = $cgiparams{'DAY'};
@@ -247,7 +251,7 @@ else {
 				$responsecodes{$result}++;
 				
                 # for debug
-                #$lastdatetime = $datetime;
+                $lastdatetime = $datetime;
 				my $testpassed = 0;
                 # collect lines between date && filter
                 if (   (($datetime > $mintime) && ($datetime < $maxtime))
@@ -279,16 +283,16 @@ else {
 							$log[ $lines++ ] = "$datetime $duration $ip $result $size $reqm $url $so";
 						}
 						else {
-							if ($lines++ < ($start + $logsettings{'LOGVIEW_VIEWSIZE'})) {
+						    # print TMPLOG "$datetime $duration $ip $result $size $reqm $url $so\n";
+							# if ($lines++ < ($start + $logsettings{'LOGVIEW_VIEWSIZE'})) {
+							    $lines++;
 								push(@log, "$datetime $duration $ip $result $size $reqm $url $so");
-								if (@log > $logsettings{'LOGVIEW_VIEWSIZE'}) {
-									shift(@log);
-								}
+								# if (@log > $logsettings{'LOGVIEW_VIEWSIZE'}) {
+								#	shift(@log);
+								# }
 
-								#} else { dont do this optimisation, need to count lines !
-								#    $datetime = $maxtime; # we have read viewsize lines, stop main loop
-								#    last READ;		  # exit read file
-							}
+								
+							# }
 						}
 					}	
                 }
@@ -297,6 +301,7 @@ else {
                 $loop = ($datetime < $maxtime);
             }
             close(FILE);
+			#close (TMPLOG);
         }
         $day_extension++;
         if ($day_extension > 31) {
@@ -304,17 +309,6 @@ else {
         }
     }
 
-    #$errormessage="$errormessage$Lang::tr{'date not in logs'}: $filestr $Lang::tr{'could not be opened'}";
-    if (0) {           # print last date record read
-        my ($SECdt, $MINdt, $HOURdt, $DAYdt, $MONTHdt, $YEARdt) = localtime($lastdatetime);
-        $SECdt   = sprintf("%.02d", $SECdt);
-        $MINdt   = sprintf("%.02d", $MINdt);
-        $HOURdt  = sprintf("%.02d", $HOURdt);
-        $DAYdt   = sprintf("%.02d", $DAYdt);
-        $MONTHdt = sprintf("%.02d", $MONTHdt + 1);
-        $YEARdt  = sprintf("%.04d", $YEARdt + 1900);
-        &General::log("$HOURdt:$MINdt:$SECdt, $DAYdt/$MONTHdt/$YEARdt--");
-    }
 }
 
 if ($cgiparams{'ACTION'} eq $Lang::tr{'export'}) {
@@ -544,38 +538,14 @@ print <<END
 	</td>
 	<td width='5%' align='right'>&nbsp;</td>
 </tr>
+<tr>
+ <td colspan="2" align='right'><sup><small><a href='http://joeyramone76.altervista.org/advproxylog' target='_blank'>AdvproxyLog $version for IPCop</a></small></sup></td>
+ <td width='5%' align='right'>&nbsp;</td>
+</tr>
 </table>
 </form>
 END
     ;
-
-&Header::closebox();
-&Header::openbox('100%', 'left', "$Lang::tr{'log'}:");
-
-$start = $lines - $logsettings{'LOGVIEW_VIEWSIZE'} if ($start >= $lines - $logsettings{'LOGVIEW_VIEWSIZE'});
-$start = 0 if ($start < 0);
-my $prev;
-if ($start == 0) {
-    $prev = -1;
-}
-else {
-    $prev = $start - $logsettings{'LOGVIEW_VIEWSIZE'};
-    $prev = 0 if ($prev < 0);
-}
-
-my $next;
-if ($start == $lines - $logsettings{'LOGVIEW_VIEWSIZE'}) {
-    $next = -1;
-}
-else {
-    $next = $start + $logsettings{'LOGVIEW_VIEWSIZE'};
-    $next = $lines - $logsettings{'LOGVIEW_VIEWSIZE'} if ($next >= $lines - $logsettings{'LOGVIEW_VIEWSIZE'});
-}
-
-# if ($logsettings{'LOGVIEW_REVERSE'} eq 'on') { @log = reverse @log; }
-
-print "<p><b>$Lang::tr{'web hits'} $date: $lines - $Lang::tr{'advproxylog sort by'} $sortby</b></p>";
-if ($lines != 0) { &oldernewer(); }
 
 %columnsortedclass = ("DATE"   => "boldbase",
 					 "RESULT" => "boldbase",
@@ -622,11 +592,60 @@ elsif ($sortby eq 'URL') {
 
 if ($order eq 'DESC') { @log = reverse @log; }
 
+
+
+    #$errormessage="$errormessage$Lang::tr{'date not in logs'}: $filestr $Lang::tr{'could not be opened'}";
+    if (0) {           # print last date record read
+        my ($SECdt, $MINdt, $HOURdt, $DAYdt, $MONTHdt, $YEARdt) = localtime($lastdatetime);
+        $SECdt   = sprintf("%.02d", $SECdt);
+        $MINdt   = sprintf("%.02d", $MINdt);
+        $HOURdt  = sprintf("%.02d", $HOURdt);
+        $DAYdt   = sprintf("%.02d", $DAYdt);
+        $MONTHdt = sprintf("%.02d", $MONTHdt + 1);
+        $YEARdt  = sprintf("%.04d", $YEARdt + 1900);
+        &General::log("$HOURdt:$MINdt:$SECdt, $DAYdt/$MONTHdt/$YEARdt--");
+    }
+
 my $durationcoldes = $Lang::tr{'advproxylog duration'};
 $durationcoldes = $Lang::tr{'advproxylog duration in ms'} if ( $measuresraw );
 
 my $sizecoldes = $Lang::tr{'advproxylog size in hr'};
 $sizecoldes = $Lang::tr{'advproxylog size in bytes'} if ( $measuresraw );
+
+my $end = $start + $logsettings{'LOGVIEW_VIEWSIZE'};
+$end = $#log if ($#log < $start + $logsettings{'LOGVIEW_VIEWSIZE'});
+@log =  @log [$start .. $end];
+
+&Header::closebox();
+&Header::openbox('100%', 'left', "$Lang::tr{'log'}: start->$start end->$end step->$logsettings{'LOGVIEW_VIEWSIZE'}  total lines-> $lines");
+
+$start = $lines - $logsettings{'LOGVIEW_VIEWSIZE'} if ($start >= $lines - $logsettings{'LOGVIEW_VIEWSIZE'});
+$start = 0 if ($start < 0);
+my $prev;
+if ($start == 0) {
+    $prev = -1;
+}
+else {
+    $prev = $start - $logsettings{'LOGVIEW_VIEWSIZE'};
+    $prev = 0 if ($prev < 0);
+}
+
+my $next;
+if ($start == $lines - $logsettings{'LOGVIEW_VIEWSIZE'}) {
+    $next = -1;
+}
+else {
+    $next = $start + $logsettings{'LOGVIEW_VIEWSIZE'};
+    $next = $lines - $logsettings{'LOGVIEW_VIEWSIZE'} if ($next >= $lines - $logsettings{'LOGVIEW_VIEWSIZE'});
+}
+
+# if ($logsettings{'LOGVIEW_REVERSE'} eq 'on') { @log = reverse @log; }
+
+print "<p><b>$Lang::tr{'web hits'} $date: $lines - $Lang::tr{'advproxylog sort by'} $sortby</b></p>";
+if ($lines != 0) { &oldernewer(); }
+
+	
+	
 
  
 print <<END
@@ -657,7 +676,7 @@ foreach $_ (@log) {
 	
 	my $rate = 0;
 	
-	if ($duration ne 0) 
+	if ($duration > 0) 
 	{
 	  $rate = $size / ($duration * 0.001);
 	} else {
@@ -770,20 +789,20 @@ END
     print "<td align='center' width='50%'>";
     if ($prev != -1) {
         print
-"<a href='/cgi-bin/advproxylog.cgi?$prev,$cgiparams{'MONTH'},$cgiparams{'DAY'},$cgiparams{'SOURCE_IP'},$cgiparams{'RESPONSE_CODE'},$cgiparams{'SORT_BY'},$cgiparams{'ORDER'},$cgiparams{'FULL_URL'},$cgiparams{'ENABLE_FILTER'},$cgiparams{'FILTER'},$cgiparams{'ENABLE_INCLUDE_FILTER'},$cgiparams{'INCLUDE_FILTER'}'>$Lang::tr{'older'}</a>";
+"<a href='/cgi-bin/advproxylog.cgi?$prev,$cgiparams{'MONTH'},$cgiparams{'DAY'},$cgiparams{'SOURCE_IP'},$cgiparams{'RESPONSE_CODE'},$cgiparams{'SORT_BY'},$cgiparams{'ORDER'},$cgiparams{'FULL_URL'},$cgiparams{'ENABLE_FILTER'},$cgiparams{'FILTER'},$cgiparams{'ENABLE_INCLUDE_FILTER'},$cgiparams{'INCLUDE_FILTER'}'>$Lang::tr{'advproxylog prev'}</a>";
     }
     else {
-        print "$Lang::tr{'older'}";
+        print "$Lang::tr{'advproxylog prev'}";
     }
     print "</td>\n";
 
     print "<td align='center' width='50%'>";
     if ($next >= 0) {
         print
-"<a href='/cgi-bin/advproxylog.cgi?$next,$cgiparams{'MONTH'},$cgiparams{'DAY'},$cgiparams{'SOURCE_IP'},$cgiparams{'RESPONSE_CODE'},$cgiparams{'SORT_BY'},$cgiparams{'ORDER'},$cgiparams{'FULL_URL'},$cgiparams{'ENABLE_FILTER'},$cgiparams{'FILTER'},$cgiparams{'ENABLE_INCLUDE_FILTER'},$cgiparams{'INCLUDE_FILTER'}'>$Lang::tr{'newer'}</a>";
+"<a href='/cgi-bin/advproxylog.cgi?$next,$cgiparams{'MONTH'},$cgiparams{'DAY'},$cgiparams{'SOURCE_IP'},$cgiparams{'RESPONSE_CODE'},$cgiparams{'SORT_BY'},$cgiparams{'ORDER'},$cgiparams{'FULL_URL'},$cgiparams{'ENABLE_FILTER'},$cgiparams{'FILTER'},$cgiparams{'ENABLE_INCLUDE_FILTER'},$cgiparams{'INCLUDE_FILTER'}'>$Lang::tr{'advproxylog next'}</a>";
     }
     else {
-        print "$Lang::tr{'newer'}";
+        print "$Lang::tr{'advproxylog next'}";
     }
     print "</td>\n";
 
