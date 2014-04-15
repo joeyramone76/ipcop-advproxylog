@@ -4,7 +4,7 @@
 #
 # (c) 2013,2014 umberto.miceli http://joeyramone76.altervista.org
 #
-# $Id: advproxylog.cgi,v 1.0.1 2014/02/23 00:00:00 umberto.miceli Exp $
+# $Id: advproxylog.cgi,v 1.0.2 2014/04/14 23:50:00 umberto.miceli Exp $
 #
 
 # Add entry in menu
@@ -27,9 +27,9 @@ require '/var/ipcop/addons/advproxylog/advproxylog-lib.pl';
 
 use POSIX();
 
-my $version = `cat ${General::swroot}/addons/advproxylog/version`;
-my $updflagfile = "${General::swroot}/addons/advproxylog/.up2date";
-my $logdir = "${General::swroot}/addons/advproxylog/reports";
+my $version = `cat /var/ipcop/addons/advproxylog/version`;
+my $updflagfile = "/var/ipcop/addons/advproxylog/.up2date";
+my $logdir = "/var/ipcop/addons/advproxylog/reports";
 
 
 my %cgiparams    = ();
@@ -750,7 +750,13 @@ print "</table>";
 
 sub check4updates
 {
-	if ((-e "${General::swroot}/red/active") && (-e $updflagfile) && (int(-M $updflagfile) > 3))
+	if (! -e '/var/ipcop/red/active')
+	{
+		return;
+	}
+	
+	# download latest version file if it is not existing or outdated (i.e. 5 days old)
+	if((! -e $updflagfile) || (int(-M $updflagfile) > 5))
 	{
 		my @response=();;
 

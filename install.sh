@@ -4,7 +4,7 @@
 # created 01 January 2014 by Umberto 'joeyramone76' Miceli <joeyramone76@altervista.org>
 #
 #
-# $Id: install.sh v 1.0.1 2014-02-23 17:56:23Z joeyramone76 $
+# $Id: install.sh v 1.0.2 2014-04-14 23:56:23Z joeyramone76 $
 #
 
 SCRIPTPATH=`dirname $0`
@@ -13,7 +13,7 @@ CMD="$1"
 STEP=1
 UPDATE=0
 
-ADVPLVER=1.0.1
+ADVPLVER=1.0.2
 ADVPLURL=http://joeyramone76.altervista.org/advproxylog/latest
 LOGDIR="/var/log/advproxylog"
 
@@ -38,7 +38,7 @@ ai()
 {
     echo ""
     echo "===================================================="
-    echo "  IPCop 2.0 Advanced proxy Log 1.0.1 add-on installation"
+    echo "  IPCop 2.0 Advanced proxy Log 1.0.2 add-on installation"
     echo "===================================================="
     echo ""
 
@@ -122,7 +122,7 @@ au()
 {
 
     echo "===================================================="
-    echo "  IPCop 2.0 Advanced Proxy Log 1.0.1 add-on uninstall"
+    echo "  IPCop 2.0 Advanced Proxy Log 1.0.2 add-on uninstall"
     echo "===================================================="
     echo ""
 
